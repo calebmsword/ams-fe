@@ -84,6 +84,7 @@ const styles = {
         flex: 1,
         alignItems: 'center',
         alignSelf: 'center',
+        padding: '10px',
     },
     header: {
         backgroundColor: colors.headerBackground,
@@ -110,6 +111,7 @@ const styles = {
         borderRadius: '5px',
         border: 0,
         padding: 5,
+        marginTop: '20px',
         margin: 5,
     },
     balance: {
@@ -121,5 +123,6 @@ const styles = {
         padding: '10px',
         alignItems: 'stretch',
         marginTop: '20px',
+        justifyContent: 'space-between'
     },
 }

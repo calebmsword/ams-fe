@@ -1,11 +1,12 @@
 import logo from '../account-management-system-logo-solid-color-dark-zoomedout.jpg';
 import { colors } from '../colors';
+import logout from '../logout-cropped.png'
 
 export default function Header( {logoutHandler} ) {
     return (
         <div style={styles.header}>
             <img src={logo} width='200px'/>
-            <a onClick={logoutHandler} href=''>Logout</a>
+            <a style={styles.link} onClick={logoutHandler} href=''>Logout</a>
         </div>
     );
 }
@@ -16,8 +17,14 @@ const styles = {
         width: '100%',
         color: 'white',
         display: 'flex',
-        alignItems: 'space-between',
+        alignItems: 'flex-end',
         justifyContent: 'space-between',
-        color: 'white',
+        padding: '10px'
+        // color: 'white',
     },
+    link: {
+        padding: '25px', 
+        color: 'white', 
+        textDecoration: 'none',
+    }
 }

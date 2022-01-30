@@ -100,11 +100,12 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: colors.contentBackground,
-        height: '100vh',
-        width: '50vw',
+        minHeight: '100vh',
+        minWidth: '50vw',
         flex: 1,
         alignItems: 'center',
         alignSelf: 'center',
+        padding: '10px'
     },
     header: {
         backgroundColor: colors.headerBackground,

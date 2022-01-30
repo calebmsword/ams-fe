@@ -156,6 +156,7 @@ const styles = {
         flex: 1,
         alignItems: 'center',
         alignSelf: 'center',
+        padding: '10px'
     },
     header: {
         backgroundColor: colors.headerBackground,

@@ -129,6 +129,7 @@ const styles = {
         flex: 1,
         alignItems: 'center',
         alignSelf: 'center',
+        padding: '10px'
     },
     header: {
         backgroundColor: colors.headerBackground,
@@ -137,6 +138,7 @@ const styles = {
         display: 'flex',
         alignItems: 'space-between',
         justifyContent: 'space-between',
+        padding: '10px',
     },
     content: {
         color: colors.contentText,

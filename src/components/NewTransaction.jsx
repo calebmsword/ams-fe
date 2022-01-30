@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { colors } from '../colors';
 import logo from '../account-management-system-logo-solid-color.png';
 import { mockBankAccountList } from '../mockData';
+import Header from './Header';
 
 export default function NewTransaction (props) {
     const navigate = useNavigate();
@@ -52,11 +53,7 @@ export default function NewTransaction (props) {
             <div style={{flex:1}}></div>
 
             <div style={styles.middle}>
-                {/*Header*/}
-                <div style={styles.header}>
-                    <img src={logo} width='200px'/>
-                    <a onClick={logoutHandler} href=''>Logout</a>
-                </div>
+                <Header logoutHandler={logoutHandler} />
 
                 {/*Content*/}
                 <div style={styles.content}>
@@ -162,6 +159,7 @@ const styles = {
         flex: 1,
         alignItems: 'center',
         alignSelf: 'center',
+        padding: '10px'
     },
     header: {
         backgroundColor: colors.headerBackground,

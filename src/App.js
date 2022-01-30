@@ -1,15 +1,10 @@
 import './App.css';
-import { BrowserRouter } from 'react-router-dom';
+import Navigation from "./components/Navigation";
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <BrowserRouter>
-          <Navigation />
-        </BrowserRouter>
-        <Main />
-      </header>
+      <Navigation />
     </div>
   );
 }

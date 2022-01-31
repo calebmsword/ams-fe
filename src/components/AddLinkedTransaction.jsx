@@ -1,11 +1,11 @@
+import axios from 'axios';
 import React, { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { colors } from '../colors';
 import Header from './Header';
 
 export default function AddLinkedTransaction(props) {
     const navigate = useNavigate();
-    const params = useParams();
     const [bankAccountNumber, setBankAccountNumber] = useState('');
     const [isSixChar, setIsSixChar] = useState('');
     const [displayMessage, setDisplayMessage] = useState('');
@@ -16,16 +16,19 @@ export default function AddLinkedTransaction(props) {
     }
 
     const handleSubmit = (element) => {
+        element.preventDefault();
         if (!isSixChar) {
             setDisplayMessage(`Entered ${bankAccountNumber.length} digits, but bank account number must be 6 digits.`);
-            element.preventDefault();
         } else {
-            if (bankAccountNumber === '1234567890') {
-                setDisplayMessage('PAN already taken');
-            } else {
-                navigate(`../transactions/${params.initiatorAccountNumber}/new-linked`)
-            }
-            element.preventDefault();
+
+            const bankAccount = axios.get(`bankaccount/${bankAccountNumber}`)
+                .catch(e => setDisplayMessage(e.message))
+
+            axios.put('customer', {
+                ...props.currentUser,
+                linkedAccounts: [...props.currentUser.linkedAccounts, bankAccount]
+            })
+            // navigate(`../transactions/${params.initiatorAccountNumber}/new-linked`)
         }
     }
 

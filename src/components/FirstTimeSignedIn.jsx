@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { colors } from '../colors';
 import logo from '../account-management-system-logo-solid-color-dark-zoomedout.jpg';
+import axios from '../axiosConfig';
 
 export default function FirstTimeSignedIn(props) {
     
@@ -13,22 +14,36 @@ export default function FirstTimeSignedIn(props) {
     const [passwordContainsNumber, setPasswordContainsNumber] = useState(false);
     const [passwordContainsUpperCaseAndLowercase, setPasswordContainsUpperCaseAndLowerCase] = useState(false);
     const [passwordContainsSpecialCharacters, setPasswordContainsSpecialCharacters] = useState(false);
+    const [displayMessage, setDisplayMessage] = useState('');
 
-    const changePasswordHandler = (element) => {
+    const changePasswordHandler = async (element) => {
+        element.preventDefault();
         const passwordValid = passwordsMatch && 
             passwordIsValidLength && 
             passwordContainsNumber && 
             passwordContainsUpperCaseAndLowercase && 
             passwordContainsSpecialCharacters;
         if (passwordValid) {
-            /* Make axios call to change password  */
-            element.preventDefault();
-            console.log('In first time logged in, props is: \n', props)
-            props.setCurrentUser({...props.currentUser, newCustomer: 'false'})
-            navigate('../home');
-            element.preventDefault();
-        } else {
-            element.preventDefault();
+
+            const currentUser = props.currentUser;
+
+            console.log({
+                ...currentUser,
+                password: newPasswordA,
+                newCustomer: false,
+            })
+
+            const response = await axios.put(`customer`, {
+                ...currentUser,
+                password: newPasswordA,
+                newCustomer: false,
+            })
+                .catch( e => setDisplayMessage(e.message))
+
+            if (response) {
+                props.setCurrentUser({...props.currentUser, newCustomer: 'false'})
+                navigate('../home');
+            }
         }
     }
 
@@ -50,7 +65,7 @@ export default function FirstTimeSignedIn(props) {
         );
     
     }, [newPasswordA, newPasswordB]);
-
+    
     return (
 
         <div style={styles.head}>
@@ -61,7 +76,7 @@ export default function FirstTimeSignedIn(props) {
             <div style={styles.middle}>
                 {/*Header*/}
                 <div style={styles.header}>
-                    <img src={logo} width='200px'/>
+                    <img alt='logo' src={logo} width='200px'/>
                 </div>
 
                 {/*Content*/}
@@ -103,6 +118,17 @@ export default function FirstTimeSignedIn(props) {
                             value='Change Password'
                         />
                     </form>
+
+                    {
+                        displayMessage ?
+                            <>
+                                <span style={styles.messageWarning}>Change Password Failed:</span>
+                                <span style={styles.messageNotGreen}>{displayMessage}</span>
+                            </>
+                        :
+                            null
+                    }
+
                 </div>
             </div>
             
@@ -175,5 +201,9 @@ const styles = {
         fontSize: '12px',
         fontWeight: 700,
         color: 'green',
+    },
+    messageNotGreen: {
+        fontSize: '12px',
+        fontWeight: 700,
     }
 }

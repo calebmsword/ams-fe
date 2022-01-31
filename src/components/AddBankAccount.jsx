@@ -2,27 +2,29 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { colors } from '../colors';
 import Header from './Header';
+import axios from '../axiosConfig';
 
-export default function (props) {
+export default function AddBankAccount (props) {
     const navigate = useNavigate();
-    const [accountName, setAccountName] = useState();
-    const [displayMessage, setDisplayMessage] = useState();
+    const [accountName, setAccountName] = useState('');
+    const [displayMessage, setDisplayMessage] = useState('');
 
     const logoutHandler = () => {
         props.setCurrentUser(null);
-
-        //! Check that url is correct!
         navigate('../')
     }
 
-    const handleSubmit = (element) => {
+    const handleSubmit = async (element) => {
         element.preventDefault();
-        if (accountName==='test') {
-            setDisplayMessage('Chosen account name is not allowed. Please enter another name.')
-        }
-        else {
-            navigate('../home')
-        }
+        axios.post('bankaccount', {
+                accountName: accountName,
+                balance: 0,
+                customer: { ...props.currentUser },
+                transactionList: null,
+                linkedCustomer: null
+        })
+            .catch( e => setDisplayMessage(e.message))
+            .then( () => navigate('../home') );
     }
 
     const handleChange = (element) => {
@@ -45,7 +47,7 @@ export default function (props) {
                     <span><Link to='../home'>Back</Link></span>
                     <h2>Enter new account name: </h2>
                     <form
-                        style={styles.form}
+                        // style={styles.form}
                         onSubmit={handleSubmit}
                     >
                         <input
@@ -58,7 +60,7 @@ export default function (props) {
                         <input
                             style={styles.button}
                             type='submit'
-                            value='Create New Account'
+                            value='Create'
                         />
                     </form>
                     {

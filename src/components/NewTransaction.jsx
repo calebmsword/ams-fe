@@ -1,29 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { colors } from '../colors';
-import logo from '../account-management-system-logo-solid-color.png';
-import { mockBankAccountList } from '../mockData';
 import Header from './Header';
+import axios from '../axiosConfig';
 
 export default function NewTransaction (props) {
     const navigate = useNavigate();
     const params = useParams();
     const [transactionType, setTransactionType] = useState('');
-    const [displayMessage, setDisplayMessage] = useState();
-    const [amount, setAmount] = useState(); 
-    const [recipient, setRecipient] = useState();
+    const [displayMessage, setDisplayMessage] = useState('');
+    const [amount, setAmount] = useState(''); 
+    const [recipient, setRecipient] = useState(0);
     const [bankAccountList, setBankAccountList] = useState([]);
 
     const logoutHandler = () => {
         props.setCurrentUser(null);
-
-        //! Check that url is correct!
         navigate('../')
     }
 
-    const handleSubmit = (element) => {
+    const handleSubmit = async (element) => {
         element.preventDefault();
-        navigate(`../transactions/${params.initiatorAccountNumber}`)
+        
+        const getResponse = await axios.get(`bankaccount/${params.initiatorAccountNumber}`)
+            .catch( e => setDisplayMessage(e.message))
+        
+        const bankAccountResponse = await axios.get(`bankaccount/${recipient}`)
+            .catch( e => setDisplayMessage(e.message))
+
+        if (bankAccountResponse && getResponse) {
+            const bankAccount = bankAccountResponse.data;
+            const postResponse = await axios.post(`transaction`, {
+                initiatorAccountName: getResponse.data.accountName,
+                datimeOfTransaction: Date.now(),
+                transactionType: transactionType,
+                amount: amount,
+                recipientAccountNumber: bankAccount.accountNumber,
+                recipientAccountName: bankAccount.accountName,
+                initiatorAccount: getResponse.data
+            }).catch( e => setDisplayMessage(e.message))
+            
+            if (postResponse) {
+                navigate(`../transactions/${params.initiatorAccountNumber}`)
+            }
+        }   
+        
     }
 
     const handleDropdownChange = (element) => {
@@ -33,7 +53,7 @@ export default function NewTransaction (props) {
 
     const handleRecipientChange = (element) => {
         setDisplayMessage('');
-        setRecipient(element.target.value);
+        setRecipient(element.target.value)
     }
 
     const handleAmountChange = (element) => {
@@ -43,8 +63,26 @@ export default function NewTransaction (props) {
     }
 
     useEffect( () => {
-        setBankAccountList(mockBankAccountList);
-    }, []);
+        ( async () => {
+            const response = await axios.get(`bankaccount/bypan/${props.currentUser.permanentAccountNumber}`)
+                    .catch( e => setDisplayMessage(e.message))
+            if (response) {
+                setBankAccountList(response.data.filter(bankAccount => 
+                    bankAccount.accountNumber !== +params.initiatorAccountNumber
+                ))
+            }
+        })()
+    }, [params.initiatorAccountNumber, props.currentUser])
+
+    useEffect( () => {
+        (async () => {
+            const recipientResponse = await axios.get(`bankaccount/${params.initiatorAccountNumber}`)
+                .catch( e => setDisplayMessage(e.message))
+            if (recipientResponse) {
+                setRecipient(recipientResponse.data.accountNumber)
+            }  
+        })()
+    }, [params.initiatorAccountNumber]);
 
     return (
         <div style={styles.head}>
@@ -57,10 +95,11 @@ export default function NewTransaction (props) {
 
                 {/*Content*/}
                 <div style={styles.content}>
+                    <br/>
                     <span><Link to={`../transactions/${params.initiatorAccountNumber}`}>Back</Link></span>
                     <h2>What kind of transaction: </h2>
                     <form
-                        style={styles.form}
+                        // style={styles.form}
                         onSubmit={handleSubmit}
                     >
                         <select
@@ -69,13 +108,19 @@ export default function NewTransaction (props) {
                             onChange={handleDropdownChange}
                         >
                             <option value='' disabled hidden></option>
-                            <option value='deposit'>deposit</option>
-                            <option value='withdrawal'>withdrawal</option>
-                            <option value='transfer'>transfer</option>
+                            <option value='DEPOSIT'>deposit</option>
+                            <option value='WITHDRAWAL'>withdrawal</option>
+                            {
+                                bankAccountList.length > 0 ?
+                                    <option value='TRANSFER'>transfer</option>
+                                :
+                                    null
+                            }
+                            
                         </select>
 
                         {
-                            transactionType === 'transfer'? 
+                            transactionType === 'TRANSFER' && bankAccountList.length > 0 ?
                                 <>
                                     <h2>What account to transfer to:</h2>
 
@@ -84,10 +129,10 @@ export default function NewTransaction (props) {
                                         value={recipient}
                                         onChange={handleRecipientChange}
                                     >
-                                        <option value='' disabled hidden></option>
+                                        <option value='' default hidden>Choose Account</option>
                                         {
-                                            bankAccountList.map( item => 
-                                                <option key={item.accountNumber} value={item.accountName}>
+                                            bankAccountList.map(item => 
+                                                <option key={item.accountNumber} value={item.accountNumber}>
                                                     {item.accountName}
                                                 </option>
                                             )
@@ -95,18 +140,17 @@ export default function NewTransaction (props) {
                                     </select>
                                     <br/>
                                 </>
-                                
                             :
                                 null
                         }
-
+                        
                         {
                             transactionType ? 
                                 <>
                                     <input
                                         style={styles.textInput}
                                         type='text'
-                                        pattern='[0-9]*'
+                                        pattern='(^[0-9]*)|([0-9]*.)|([0-9]*.[0-9])|([0-9]*.[0-9][0-9])'
                                         value={amount}
                                         onChange={handleAmountChange}
                                         placeholder='amount'

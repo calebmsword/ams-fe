@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { Routes, Route } from 'react-router';
 import Login from './Login';
 import LoggedIn from './LoggedIn';
-import AllTransactionsView from './AllTransactionsView'
+import TransactionsView from './TransactionsView'
 import CreateNewCustomer from './CreateNewCustomer';
 import CheckPANAvailability from './CheckPANAvailability';
 import AddBankAccount from './AddBankAccount';
@@ -22,7 +22,7 @@ export default function Navigation() {
             <Routes>
                 <Route path="/" element={<Login {...globalProps} />} />
                 <Route path="/home" element={<LoggedIn {...globalProps} />} />
-                <Route path="/transactions/:initiatorAccountNumber" element={<AllTransactionsView {...globalProps} />} />
+                <Route path="/transactions/:initiatorAccountNumber" element={<TransactionsView {...globalProps} />} />
                 <Route path="/transactions/:initiatorAccountNumber/new" element={<NewTransaction {...globalProps} />} />
                 <Route path="/transactions/:initiatorAccountNumber/new-linked" element={<NewLinkedTransaction {...globalProps} />} />
                 <Route path="/transactions/:initiatorAccountNumber/add-linked" element={<AddLinkedTransaction {...globalProps} />} />

@@ -1,12 +1,11 @@
 import logo from '../account-management-system-logo-solid-color-dark-zoomedout.jpg';
 import { colors } from '../colors';
-import logout from '../logout-cropped.png'
 
 export default function Header( {logoutHandler} ) {
     return (
         <div style={styles.header}>
-            <img src={logo} width='200px'/>
-            <a style={styles.link} onClick={logoutHandler} href=''>Logout</a>
+            <img alt='logo' src={logo} width='200px'/>
+            <span style={styles.link} onClick={logoutHandler} >Logout</span>
         </div>
     );
 }

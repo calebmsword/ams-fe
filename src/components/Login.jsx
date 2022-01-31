@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import logo from '../account-management-system-logo-solid-color-dark.jpg';
 import { colors } from '../colors';
-import { mockUser, mockManager, mockUserVeteran } from '../mockData';
+import axios from '../axiosConfig';
 
 export default function Login(props) {
     const navigate = useNavigate();
@@ -10,21 +10,15 @@ export default function Login(props) {
     const [password, setPassword] = useState('');
     const [userNotFound, setUserNotFound] = useState(false);
 
-    const loginHandler = /*async*/ (e) => {
-        /*axios request*/
+    const loginHandler = async (e) => {
         e.preventDefault();
-        if (username === 'user' && password === '@Test000') {
-            props.setCurrentUser(mockUser);
+        const response = await axios.post('customer/login', {
+            loginId: username,
+            password: password,
+        }).catch( () => setUserNotFound(true))
+        if (response) {
+            props.setCurrentUser(response.data);
             navigate('./home');
-        }
-        else if (username === 'manager' && password === '@Test000') {
-            props.setCurrentUser(mockManager);
-            navigate('./home');
-        } else if (username === 'userveteran' && password === '@Test000') {
-            props.setCurrentUser(mockUserVeteran);
-            navigate('./home');
-        } else {
-            setUserNotFound(true);
         }
     }
     
@@ -35,7 +29,7 @@ export default function Login(props) {
             
             {/*content*/}
             <div style={styles.content}>
-                <img src={logo} style={styles.form}></img>
+                <img alt='logo' src={logo} style={styles.form}></img>
                 <form
                     style={{
                         display: 'flex',
@@ -66,7 +60,7 @@ export default function Login(props) {
                 {
                     userNotFound ?
                         <span style={styles.messageWarning}>
-                            User not found with specified credentials.
+                            User not found with provided credentials.
                         </span>
                     :
                         null

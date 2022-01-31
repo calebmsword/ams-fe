@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { colors } from '../colors';
 import Header from './Header';
+import axios from '../axiosConfig';
 
 export default function CheckPANAvailability(props) {
     const navigate = useNavigate();
@@ -14,17 +15,17 @@ export default function CheckPANAvailability(props) {
         navigate('../')
     }
 
-    const handleSubmit = (element) => {
+    const handleSubmit = async (element) => {
+        element.preventDefault();
         if (!isTenChar) {
             setDisplayMessage(`Entered ${pan.length} digits, but PAN must be 10 digits.`);
-            element.preventDefault();
+            
         } else {
-            if (pan === '1234567890') {
-                setDisplayMessage('PAN already taken');
-            } else {
-                setDisplayMessage('PAN available');
+            const response = await axios.get(`customer/${pan}`)
+                .catch( () => setDisplayMessage('PAN available!'))
+            if (response) {
+                setDisplayMessage('PAN already taken')
             }
-            element.preventDefault();
         }
     }
 
@@ -46,8 +47,11 @@ export default function CheckPANAvailability(props) {
 
                 {/*Content*/}
                 <div style={styles.content}>
+                    <br/>
                     <span><Link to='../home'>Back</Link></span>
+                    <br/>
                     <span>Enter a Personal Account Number you would like to check: </span>
+                    <br/>
                     <form
                         style={styles.form}
                         onSubmit={handleSubmit}
@@ -68,6 +72,7 @@ export default function CheckPANAvailability(props) {
                             :
                                 null
                         }
+                        <br/>
                         <input
                             style={styles.button}
                             type='submit'

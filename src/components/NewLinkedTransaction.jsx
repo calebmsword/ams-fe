@@ -2,38 +2,54 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { colors } from '../colors';
 import Header from './Header';
-
-import { mockLinkedBankAccountList } from '../mockData';
+import axios from '../axiosConfig';
 
 export default function NewLinkedTransaction (props) {
     const navigate = useNavigate();
     const params = useParams();
     const [displayMessage, setDisplayMessage] = useState('');
-    const [amount, setAmount] = useState(0); 
-    const [linkedAccount, setLinkedAccout] = useState();
-    const [transactionType, setTransactionType] = useState();
+    const [amount, setAmount] = useState(''); 
+    const [linkedAccountNumber, setLinkedAccountNumber] = useState();
     const [linkedBankAccountList, setLinkedBankAccountList] = useState([]);
 
     const logoutHandler = () => {
         props.setCurrentUser(null); 
-
-        //! Check that url is correct!
         navigate('../')
     }
 
-    const handleSubmit = (element) => {
+    const handleSubmit = async (element) => {
         element.preventDefault();
-        navigate(`../transactions/${params.initiatorAccountNumber}`)
+
+        const getResponse = await axios.get(`bankaccount/${params.initiatorAccountNumber}`)
+            .catch( e => setDisplayMessage(e.message))
+        
+        const bankAccountResponse = await axios.get(`bankaccount/${linkedAccountNumber}`)
+            .catch( e => setDisplayMessage(e.message))
+
+        if (bankAccountResponse && getResponse) {
+            const bankAccount = bankAccountResponse.data;
+            const postResponse = await axios.post(`transaction`, {
+                initiatorAccountName: getResponse.data.accountName,
+                datimeOfTransaction: Date.now(),
+                transactionType: "TRANSFER",
+                amount: amount,
+                recipientAccountNumber: bankAccount.accountNumber,
+                recipientAccountName: bankAccount.accountName,
+                initiatorAccount: getResponse.data
+            }).catch( e => setDisplayMessage(e.message))
+            
+
+            if (postResponse) {            
+            
+                navigate(`../transactions/${params.initiatorAccountNumber}`)
+            }
+        }   
     }
 
-    const handleTransactionTypeChange = (element) => {
-        setDisplayMessage('');
-        setTransactionType(element.target.value);
-    }
 
     const handleLinkedAccountChange = (element) => {
         setDisplayMessage('');
-        setLinkedAccout(element.target.value);
+        setLinkedAccountNumber(element.target.value);
     }
 
     const handleAmountChange = (element) => {
@@ -47,8 +63,14 @@ export default function NewLinkedTransaction (props) {
     }
 
     useEffect( () => {
-        setLinkedBankAccountList(mockLinkedBankAccountList);
-    }, []);
+        ( async () => {
+            const response = await axios.get(`customer/${props.currentUser.permanentAccountNumber}/linked`)
+                .catch(e => setDisplayMessage(e.message))
+            if (response && response.data) {
+                setLinkedBankAccountList(response.data)
+            }
+        })()
+    }, [props.currentUser]);
 
     return (
         <div style={styles.head}>
@@ -69,57 +91,46 @@ export default function NewLinkedTransaction (props) {
                         onSubmit={handleSubmit}    
                     >
                         <h2>Choose linked Account:</h2>
-                        <select
-                            style={styles.textInput}
-                            value={linkedAccount}
-                            onChange={handleLinkedAccountChange}
-                        >
-                            <option value='' default hidden />
-                            { 
-                                linkedBankAccountList.map( item => 
-                                    <option key={item.accountNumber}>
-                                        {item.accountName}
-                                    </option>)
-                            }
-                        </select>
+                        {
+                            linkedBankAccountList.length ?  
+                                <select
+                                    style={styles.textInput}
+                                    value={linkedAccountNumber}
+                                    onChange={handleLinkedAccountChange}
+                                >
+                                    <option value='' default hidden />
+                                    { 
+                                        linkedBankAccountList.map( item => 
+                                            <option key={item.accountNumber} value={item.accountNumber}>
+                                                {item.accountName}
+                                            </option>)
+                                    }
+                                </select>
+                            :
+                                null
+                        }
+                        
                         <button 
                             onClick={addLinkedAccountHandler} 
                             style={styles.button}>
                             Add Linked Account
                         </button>
-
-                        <h2>Choose transaction type</h2>
-                        <select
-                            style={styles.textInput}
-                            value={transactionType}
-                            onChange={handleTransactionTypeChange}
-                        >
-                            <option value='' default hidden />
-                            <option value='deposit'>deposit</option>
-                            <option value='withdrawal'>withdrawal</option>
-                        </select>
                         
-                        {
-                            transactionType ? 
-                                <>
-                                    <input
-                                        style={styles.textInput}
-                                        type='text'
-                                        pattern='[0-9]*'
-                                        value={amount}
-                                        onChange={handleAmountChange}
-                                        placeholder='amount'
-                                    />
-                                    <input
-                                        style={styles.button}
-                                        type='submit'
-                                        value='Submit Transaction'
-                                    />
-                                </>
-                                
-                            :
-                                null
-                        }
+                        <br/>
+                        <h2>Amount to transfer:</h2>
+                        <input
+                            style={styles.textInput}
+                            type='text'
+                            pattern='([0-9]*)|([0-9]*.)|([0-9]*.[0-9])|([0-9]*.[0-9][0-9]*)'
+                            value={amount}
+                            onChange={handleAmountChange}
+                            placeholder='amount'
+                        />
+                        <input
+                            style={styles.button}
+                            type='submit'
+                            value='Submit Transaction'
+                        />
 
                     </form>
                     {

@@ -4,47 +4,60 @@ import { colors } from '../colors';
 import { parseDatime } from '../utils';
 import Header from './Header';
 import axios from '../axiosConfig';
+import DaySelect from './DOBDaySelect';
+import MonthSelect from './DOBMonthSelect';
 import { CSVLink } from 'react-csv';
 
-export default function TransactionsView(props) {
+export default function TransactionsViewCustom (props) {
     const navigate = useNavigate();
     const params = useParams();
-    const [recentTransactions, setRecentTransactions] = useState([]);
+    const [transactions, setTransactions] = useState([]);
     const [bankAccount, setBankAccount] = useState({});
     const [errorFindingTransactions, setErrorFindingTransactions] = useState('')
+    const [dateADay, setDateADay] = useState('')
+    const [dateAMonth, setDateAMonth] = useState('')
+    const [dateAYear, setDateAYear] = useState('')
+    const [dateBDay, setDateBDay] = useState('')
+    const [dateBMonth, setDateBMonth] = useState('')
+    const [dateBYear, setDateBYear] = useState('')
+
+    const sortByDate = (a, b) => {
+        if (b.datimeOfTransaction > a.datimeOfTransaction) {
+            return 1
+        } 
+        else if (b.datimeOfTransaction < a.datimeOfTransaction) {
+            return -1
+        }
+        else {
+            return 0
+        }
+    }
 
     const logoutHandler = () => {
         props.setCurrentUser(null);
-        navigate('../')
+        navigate('../../')
     }
 
-    const clickHandlerA = () => {
-        navigate('new');
-    }
+    const onDateSubmitHandler = async (element) => {
+        element.preventDefault()
+        const dateA = +new Date(`${dateAMonth} ${dateADay}, ${dateAYear}`);
+        const dateB = +new Date(`${dateBMonth} ${dateBDay}, ${dateBYear}`);
 
-    const clickHandlerB = () => {
-        navigate('new-linked');
+        const response = await axios.get(`transaction/window/${dateA}/${dateB}`)
+            .catch( e => setErrorFindingTransactions(e.message))
+
+        if(response && response.data) {
+            setTransactions(response.data.sort(sortByDate))
+        }
     }
 
     useEffect( () => {
         ( async () => {
-            const responseTransaction = await axios.get(`transaction/byaccount/${params.initiatorAccountNumber}`)
-                .catch( (e) => setErrorFindingTransactions(e.message)
-            )
+            // const responseTransaction = await axios.get(`transaction/byaccount/${params.initiatorAccountNumber}`)
+            //     .catch( (e) => setErrorFindingTransactions(e.message)
+            // )
 
-            setRecentTransactions(
-                responseTransaction.data.sort( (a, b) => {
-                    if (b.datimeOfTransaction > a.datimeOfTransaction) {
-                        return 1
-                    } 
-                    else if (b.datimeOfTransaction < a.datimeOfTransaction) {
-                        return -1
-                    }
-                    else {
-                        return 0
-                    }
-                }).slice(0,5)
-            );
+            // setTransactions(responseTransaction.data.sort(sortByDate));
 
             const responseBankAccount = await axios.get(`bankaccount/${params.initiatorAccountNumber}`)
                 .catch( (e) => setErrorFindingTransactions(e.message)
@@ -65,24 +78,11 @@ export default function TransactionsView(props) {
                 {/*Content*/}
                 <div style={styles.content}> 
                     <br/>
-                    <span><Link to='../home'>Back</Link></span>
+                    <span><Link to={`../transactions/${params.initiatorAccountNumber}`}>Back</Link></span>
                     <br/>
                     <span>{bankAccount.accountName} (#{bankAccount.accountNumber})</span>
-                    <span style={{fontSize:'24px',color:'white',paddingTop:'10px'}}>Current balance: ${(Math.round(bankAccount.balance*100)/100).toFixed(2)}</span>
-                    <br/>
+                    <h2> Choose Date Window: </h2>
 
-                    <button 
-                        style={styles.button} 
-                        onClick={clickHandlerA}>
-                        Make transaction
-                    </button>
-
-                    <button 
-                        style={styles.button} 
-                        onClick={clickHandlerB}>
-                        Transfer to other user's account
-                    </button>
-                    <br/>
                     {
                         errorFindingTransactions ?
                             <>
@@ -93,13 +93,62 @@ export default function TransactionsView(props) {
                         :
                             null
                     }
+                    
+                    <form onSubmit={onDateSubmitHandler}>
+                        <span>Date 1:</span>
+                        <MonthSelect 
+                            style={styles.formInput} 
+                            dateOfBirthMonth={dateAMonth}
+                            setDateOfBirthMonth={setDateAMonth}
+                        />
+                        <DaySelect 
+                            style={styles.formInput} 
+                            dateOfBirthDay={dateADay}
+                            setDateOfBirthDay={setDateADay}
+                            dateOfBirthMonth={dateAMonth}
+                        />
+                        <input
+                            style={styles.formInput}
+                            type='number'
+                            value={dateAYear}
+                            placeholder='year'
+                            onChange={ (element) => setDateAYear(element.target.value) }
+                        />
+                        <br/>
+                        <span>Date 2:</span>
+                        <MonthSelect 
+                            style={styles.formInput} 
+                            dateOfBirthMonth={dateBMonth}
+                            setDateOfBirthMonth={setDateBMonth}
+                        />
+                        <DaySelect 
+                            style={styles.formInput} 
+                            dateOfBirthDay={dateBDay}
+                            setDateOfBirthDay={setDateBDay}
+                            dateOfBirthMonth={dateBMonth}
+                        />
+                        <input
+                            style={styles.formInput}
+                            type='number'
+                            value={dateBYear}
+                            placeholder='year'
+                            onChange={ (element) => setDateBYear(element.target.value) }
+                        />
+                        <input
+                            style={styles.button} 
+                            type='submit'
+                            value='Filter'
+                        />
+                    </form>
+                    
 
                     {   
-                        recentTransactions.length > 0 && !errorFindingTransactions ? 
+                        transactions.length > 0 && !errorFindingTransactions ? 
                             <>
-                                <span>Recent Transactions: (<Link to='custom'>Filter by date</Link>) </span>
+                                <h2>Transactions:</h2>
+                                <CSVLink data={transactions}>Download Transactions</CSVLink>
                                 {
-                                    recentTransactions.map(item => {
+                                    transactions.map(item => {
 
                                         let message = `${item.transactionType} $${(Math.round(item.amount*100)/100).toFixed(2)}`;
 
@@ -116,7 +165,6 @@ export default function TransactionsView(props) {
                                     })
                                 }
                                 <br/>
-                                <CSVLink data={recentTransactions}>Download Recent Transactions</CSVLink>
                             </>
                             
                         :
@@ -194,5 +242,12 @@ const styles = {
         fontSize: '24px',
         fontWeight: 700,
         color: 'red',
-    }
+    },
+    formInput: {
+        border: '2px solid #030202',
+        padding: '5px 20px',
+        borderRadius: '5px',
+        marginBottom: '5px',
+        fontFamily: 'Montserrat',
+    },
 }

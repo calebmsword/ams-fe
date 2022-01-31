@@ -24,6 +24,11 @@ export default function NewTransaction (props) {
         const getResponse = await axios.get(`bankaccount/${params.initiatorAccountNumber}`)
             .catch( e => setDisplayMessage(e.message))
         
+        if (transactionType !== 'TRANSFER') {
+            if (getResponse) {
+                setRecipient(getResponse.data.accountNumber)
+            }
+        }
         const bankAccountResponse = await axios.get(`bankaccount/${recipient}`)
             .catch( e => setDisplayMessage(e.message))
 

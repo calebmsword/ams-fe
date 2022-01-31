@@ -58,7 +58,7 @@ export default function AllBankAccountsView(props) {
                                 <div key={item.accountNumber} style={styles.balance}>
                                     <div style={{textAlign: 'left'}} >
                                         <span style={{color:'black'}}><Link to={`../transactions/${item.accountNumber}`}>{item.accountName}</Link> (#{item.accountNumber})</span><br/>
-                                        <span>Balance: ${item.balance}</span>
+                                        <span>Balance: ${(Math.round(item.balance*100)/100).toFixed(2)}</span>
                                     </div>
                                     <img onClick={deleteHandler(item.accountNumber)} src={trash} alt='Delete' width='25px' height='25px'></img>
                                 </div>

@@ -68,7 +68,6 @@ export default function CreateNewCustomer (props) {
                 setDisplayMessage(error.message)
             ).then( response => {
                 if (response.data) {
-                    console.log('success!')
                     send('service_hcjt3tm','template_9r5o3fc',{
                             to_name: firstName,
                             username: username,
@@ -201,7 +200,6 @@ export default function CreateNewCustomer (props) {
                         />
                         <input
                             style={styles.button} 
-                            className='CreateUserButton'
                             type='submit'
                             value='Create New User'
                         />

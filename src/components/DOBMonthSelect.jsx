@@ -8,6 +8,7 @@ export default function DOBMonthSelect({ style, dateOfBirthMonth, setDateOfBirth
             style={style}
             value={dateOfBirthMonth} 
             onChange={ (element) => setDateOfBirthMonth(element.target.value)}>
+            <option value='' default hidden>Select month</option>
             { monthArray.map( (item) => <option key={item} value={item}>{item}</option>) }
         </select>
     );
